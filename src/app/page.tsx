@@ -19,6 +19,34 @@ export default function Home() {
   const [checking, setChecking] = useState(false);
   const [puzzleId, setPuzzleId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogType>(null);
+  const [cellColors, setCellColors] = useState<{[key: string]: string}>({});
+
+  // Solid colors for palette buttons; semi-transparent fill for note highlight in non-selected cells
+  const colors = [
+    { name: 'red', button: '#ef4444', cell: 'rgba(239, 68, 68, 0.5)' },
+    { name: 'orange', button: '#f97316', cell: 'rgba(249, 115, 22, 0.5)' },
+    { name: 'yellow', button: '#eab308', cell: 'rgba(234, 179, 8, 0.5)' },
+    { name: 'green', button: '#22c55e', cell: 'rgba(34, 197, 94, 0.5)' },
+    { name: 'blue', button: '#3b82f6', cell: 'rgba(59, 130, 246, 0.5)' },
+    { name: 'gray', button: '#9ca3af', cell: 'rgba(156, 163, 175, 0.5)' },
+    { name: 'brown', button: '#92400e', cell: 'rgba(146, 64, 14, 0.5)' },
+  ];
+
+  // Helper functions for applying / clearing a note color on the currently selected cell
+  const applyNoteColor = (colorValue: string) => {
+    if (!selected) return;
+    const key = `${selected[0]}-${selected[1]}`;
+    setCellColors(prev => ({ ...prev, [key]: colorValue }));
+  };
+  const clearNoteColor = () => {
+    if (!selected) return;
+    const key = `${selected[0]}-${selected[1]}`;
+    setCellColors(prev => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
 
   // Fetch logic
   useEffect(() => {
@@ -57,6 +85,7 @@ export default function Home() {
       {loading ? (
         <p>Generating Board...</p>
       ) : (
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
         <div className="board-card">
           <div className="sudoku-board" role="grid" aria-label="sudoku-board">
             {board.flatMap((row, rIndex) => (
@@ -66,6 +95,8 @@ export default function Home() {
                 const isInitial = initialBoard[rIndex][cIndex] !== 0;
 
                 const isSelected = selected && selected[0] === rIndex && selected[1] === cIndex;
+                const cellKey = `${rIndex}-${cIndex}`;
+                const cellColor = cellColors[cellKey];
                 const classes = [
                   'cell',
                   isInitial ? 'initial' : '',
@@ -76,7 +107,7 @@ export default function Home() {
 
                 return (
                   <input
-                    key={`${rIndex}-${cIndex}`}
+                    key={cellKey}
                     type="text"
                     inputMode="numeric"
                     pattern="[1-9]{1}"
@@ -85,16 +116,68 @@ export default function Home() {
                     value={cell === 0 ? '' : String(cell).slice(-1)}
                     disabled={isInitial}
                     onFocus={() => setSelected([rIndex, cIndex])}
-                    onBlur={() => setSelected(null)}
                     onChange={e => {
                       handleChange(rIndex, cIndex, e.target.value);
                     }}
                     className={classes}
+                    style={cellColor && !isSelected ? { backgroundColor: cellColor } : {}}
                   />
                 );
               })
             ))}
           </div>
+        </div>
+        
+        {/* Color Picker Panel */}
+        <div style={{
+          background: 'var(--surface)',
+          borderRadius: '12px',
+          padding: '18px',
+          boxShadow: '0 6px 18px rgba(80,47,76,0.08)',
+          border: '1px solid rgba(112,88,124,0.06)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          minWidth: '80px'
+        }}>
+          <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--blackberry-cream)', marginBottom: '4px' }}>Notes</div>
+          {colors.map(color => (
+            <button
+              key={color.name}
+              onClick={() => applyNoteColor(color.cell)}
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '8px',
+                border: '2px solid rgba(112,88,124,0.2)',
+                backgroundColor: color.button,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              title={color.name}
+            />
+          ))}
+          <button
+            onClick={clearNoteColor}
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '8px',
+              border: '2px solid rgba(112,88,124,0.2)',
+              backgroundColor: 'white',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px',
+              color: '#9ca3af',
+              transition: 'all 0.2s'
+            }}
+            title="Remove highlight"
+          >
+            ✕
+          </button>
+        </div>
         </div>
       )}
 
@@ -211,6 +294,7 @@ export default function Home() {
         <button onClick={() => {
           setBoard(JSON.parse(JSON.stringify(initialBoard)));
           setCheckResult(null);
+          setCellColors({});
         }} className="btn ghost">Reset</button>
 
         <button
@@ -253,10 +337,10 @@ export default function Home() {
                 const data = await res.json();
                 
                 // Log the solved board to console
-                if (data.solution) {
-                  console.log('Solved board:');
-                  console.table(data.solution);
-                }
+                // if (data.solution) {
+                //   console.log('Solved board:');
+                //   console.table(data.solution);
+                // }
                 
                 if (data.status === 'incorrect') {
                   setCheckResult(false);

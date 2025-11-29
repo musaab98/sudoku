@@ -1,7 +1,7 @@
 .cell.selected {
+	/* Keep subtle selected background without extra ring */
 	background: #e9e2ee !important;
-	/* Slightly darker than thistle, fits palette */
-	box-shadow: 0 0 0 2px var(--blackberry-cream) inset;
+	box-shadow: none;
 	z-index: 1;
 }
 :root{
