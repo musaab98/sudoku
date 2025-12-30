@@ -241,12 +241,6 @@ export default function Home() {
                   } else {
                     const data = await res.json();
                     
-                    // Log the solved board to console
-                    if (data.solution) {
-                      console.log('Solved board:');
-                      console.table(data.solution);
-                    }
-                    
                     if (data.status === 'incorrect') {
                       setCheckResult(false);
                       // Board is wrong - ask if they want to continue or start new
@@ -335,12 +329,6 @@ export default function Home() {
                 setCheckResult(null);
               } else {
                 const data = await res.json();
-                
-                // Log the solved board to console
-                // if (data.solution) {
-                //   console.log('Solved board:');
-                //   console.table(data.solution);
-                // }
                 
                 if (data.status === 'incorrect') {
                   setCheckResult(false);

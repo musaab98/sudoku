@@ -14,7 +14,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      {/* The body tag wraps all your pages */}
       <body>{children}</body>
     </html>
   );
